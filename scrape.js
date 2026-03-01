@@ -1,12 +1,26 @@
 const { chromium } = require('playwright');
 
-const SEEDS = [47, 48, 49, 50, 51, 52, 53, 54, 55, 56];
-const BASE_URL = 'https://sanand0.github.io/tdsdata/';
+// These are the exact URLs from the assignment page - Seeds 47-56
+const URLS = [
+  'https://sanand0.github.io/tdsdata/scrape/?seed=47',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=48',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=49',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=50',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=51',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=52',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=53',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=54',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=55',
+  'https://sanand0.github.io/tdsdata/scrape/?seed=56',
+];
 
 async function scrapeTableSum(page, url) {
-  await page.goto(url, { waitUntil: 'networkidle' });
+  console.log(`Navigating to: ${url}`);
+  await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
 
-  // Extract all numbers from all table cells
+  // Wait for table to appear
+  await page.waitForSelector('table', { timeout: 10000 });
+
   const numbers = await page.evaluate(() => {
     const cells = document.querySelectorAll('table td, table th');
     const nums = [];
@@ -20,30 +34,31 @@ async function scrapeTableSum(page, url) {
     return nums;
   });
 
+  console.log(`  Found ${numbers.length} numbers`);
   const sum = numbers.reduce((a, b) => a + b, 0);
   return sum;
 }
 
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ args: ['--no-sandbox'] });
   const page = await browser.newPage();
 
   let grandTotal = 0;
 
-  for (const seed of SEEDS) {
-    const url = `${BASE_URL}?seed=${seed}`;
+  for (const url of URLS) {
     try {
       const sum = await scrapeTableSum(page, url);
-      console.log(`Seed ${seed}: sum = ${sum}`);
+      console.log(`URL: ${url} => sum = ${sum}`);
       grandTotal += sum;
     } catch (err) {
-      console.error(`Error on seed ${seed}: ${err.message}`);
+      console.error(`Error on ${url}: ${err.message}`);
     }
   }
 
-  console.log(`\n=============================`);
+  console.log('');
+  console.log('=============================');
   console.log(`GRAND TOTAL = ${grandTotal}`);
-  console.log(`=============================`);
+  console.log('=============================');
 
   await browser.close();
 })();
