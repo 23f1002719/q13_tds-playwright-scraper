@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Node.js
@@ -18,11 +18,11 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Playwright
+      - name: Install dependencies
         run: |
           npm init -y
           npm install playwright
-          npx playwright install chromium
+          npx playwright install chromium --with-deps
 
       - name: 23f1002719@ds.study.iitm.ac.in - Scrape and Sum Tables
         run: node scrape.js
